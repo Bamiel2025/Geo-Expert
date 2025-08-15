@@ -254,26 +254,26 @@ async def chat_geology(message: ChatMessage):
 async def get_wms_layers():
     """Get available BRGM WMS layers"""
     try:
-        # BRGM public WMS services
+        # BRGM public WMS services - URLs réelles
         layers = {
-            "geological_map": {
+            "geological_map_50k": {
                 "name": "Carte géologique France 1/50 000",
-                "url": "https://geoservices.brgm.fr/geologie",
-                "layers": "GEOLOGIE_FRANCE_50K",
+                "url": "http://geoservices.brgm.fr/geologie",
+                "layers": "SCAN_D_GEOL50",
                 "format": "image/png",
                 "transparent": True
             },
-            "geological_formations": {
-                "name": "Formations géologiques",
-                "url": "https://geoservices.brgm.fr/geologie",
-                "layers": "FORMATIONS_GEOLOGIQUES",
+            "geological_map_250k": {
+                "name": "Carte géologique France 1/250 000",
+                "url": "http://geoservices.brgm.fr/geologie",
+                "layers": "SCAN_F_GEOL250",
                 "format": "image/png",
                 "transparent": True
             },
-            "lithology": {
-                "name": "Lithologie",
-                "url": "https://geoservices.brgm.fr/geologie",
-                "layers": "LITHOLOGIE_FRANCE",
+            "geological_map_1m": {
+                "name": "Carte géologique France 1/1 000 000",
+                "url": "http://geoservices.brgm.fr/geologie",
+                "layers": "SCAN_F_GEOL1M",
                 "format": "image/png",
                 "transparent": True
             }
