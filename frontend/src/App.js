@@ -103,23 +103,30 @@ function App() {
       
       console.log(`Coordonnées: lat=${lat}, lon=${lon}`);
       
-      try {
-        console.log('Envoi de la requête API...');
-        const response = await axios.post(`${BACKEND_URL}/api/geology-info`, {
-          lat,
-          lon,
-          zoom: geologyMap.getView().getZoom()
-        });
-        
-        console.log('Réponse API reçue:', response.data);
-        setGeologicalInfo(response.data);
-        setShowGeologyPanel(true);
-        console.log('Panel géologique ouvert');
-      } catch (error) {
-        console.error('Erreur info géologique:', error);
-        // Afficher une notification d'erreur à l'utilisateur
-        alert('Erreur lors de la récupération des données géologiques');
-      }
+      // Fermer le panel s'il est ouvert pour permettre un nouveau clic
+      setShowGeologyPanel(false);
+      setGeologicalInfo(null);
+      
+      // Petit délai pour permettre la fermeture
+      setTimeout(async () => {
+        try {
+          console.log('Envoi de la requête API...');
+          const response = await axios.post(`${BACKEND_URL}/api/geology-info`, {
+            lat,
+            lon,
+            zoom: geologyMap.getView().getZoom()
+          });
+          
+          console.log('Réponse API reçue:', response.data);
+          setGeologicalInfo(response.data);
+          setShowGeologyPanel(true);
+          console.log('Panel géologique ouvert');
+        } catch (error) {
+          console.error('Erreur info géologique:', error);
+          // Afficher une notification d'erreur à l'utilisateur
+          alert('Erreur lors de la récupération des données géologiques');
+        }
+      }, 100);
     });
 
     setMaps({ satellite: satelliteMap, geology: geologyMap });
