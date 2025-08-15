@@ -465,6 +465,14 @@ function App() {
             <div className="map-instructions">
               <Info size={14} />
               <span>Cliquez sur la carte pour obtenir des informations géologiques</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => testGeologicalInfo()}
+                className="ml-2"
+              >
+                Test Info
+              </Button>
             </div>
           </div>
         </div>
