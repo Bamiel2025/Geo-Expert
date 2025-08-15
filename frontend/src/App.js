@@ -97,16 +97,9 @@ function App() {
     syncMaps(satelliteMap, geologyMap);
     syncMaps(geologyMap, satelliteMap);
 
-    // Add click interaction for geological info
-    const selectInteraction = new Select({
-      condition: click,
-      layers: [] // Will be populated with geological layers
-    });
-
-    geologyMap.addInteraction(selectInteraction);
-
-    selectInteraction.on('select', async (event) => {
-      const coordinate = event.mapBrowserEvent.coordinate;
+    // Add click interaction for geological info on geology map
+    geologyMap.on('singleclick', async (event) => {
+      const coordinate = event.coordinate;
       const [lon, lat] = toLonLat(coordinate);
       
       try {
