@@ -30,7 +30,7 @@ function App() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [maps, setMaps] = useState({ satellite: null, geology: null });
   const [geologicalLayers, setGeologicalLayers] = useState({});
-  const [activeLayers, setActiveLayers] = useState(['geological_map']);
+  const [activeLayers, setActiveLayers] = useState(['geological_map_50k']);
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   
   // API Configuration
