@@ -288,6 +288,32 @@ function App() {
     );
   };
 
+  // Test geological info function
+  const testGeologicalInfo = async () => {
+    console.log('Test des informations géologiques...');
+    
+    // Use Paris coordinates as test
+    const testLat = 48.8566;
+    const testLon = 2.3522;
+    
+    try {
+      console.log(`Test avec coordonnées: lat=${testLat}, lon=${testLon}`);
+      const response = await axios.post(`${BACKEND_URL}/api/geology-info`, {
+        lat: testLat,
+        lon: testLon,
+        zoom: 10
+      });
+      
+      console.log('Réponse API test reçue:', response.data);
+      setGeologicalInfo(response.data);
+      setShowGeologyPanel(true);
+      console.log('Panel géologique ouvert (test)');
+    } catch (error) {
+      console.error('Erreur test info géologique:', error);
+      alert('Erreur lors du test des données géologiques');
+    }
+  };
+
   return (
     <div className="app">
       {/* Header */}
