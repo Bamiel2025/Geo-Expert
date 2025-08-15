@@ -97,20 +97,28 @@ function App() {
 
     // Add click interaction for geological info on geology map
     geologyMap.on('singleclick', async (event) => {
+      console.log('Clic détecté sur la carte géologique');
       const coordinate = event.coordinate;
       const [lon, lat] = toLonLat(coordinate);
       
+      console.log(`Coordonnées: lat=${lat}, lon=${lon}`);
+      
       try {
+        console.log('Envoi de la requête API...');
         const response = await axios.post(`${BACKEND_URL}/api/geology-info`, {
           lat,
           lon,
           zoom: geologyMap.getView().getZoom()
         });
         
+        console.log('Réponse API reçue:', response.data);
         setGeologicalInfo(response.data);
         setShowGeologyPanel(true);
+        console.log('Panel géologique ouvert');
       } catch (error) {
         console.error('Erreur info géologique:', error);
+        // Afficher une notification d'erreur à l'utilisateur
+        alert('Erreur lors de la récupération des données géologiques');
       }
     });
 
