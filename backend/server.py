@@ -64,33 +64,72 @@ async def search_location(location: LocationSearch):
     try:
         # Search specifically in France
         url = "https://nominatim.openstreetmap.org/search"
+        
+        # Add User-Agent header as required by Nominatim
+        headers = {
+            "User-Agent": "GeoExplorer-France/1.0 (geological.application@example.com)"
+        }
+        
         params = {
-            "q": f"{location.query}, France",
+            "q": location.query,
             "format": "json",
             "limit": 10,
             "countrycodes": "fr",
-            "addressdetails": 1
+            "addressdetails": 1,
+            "bounded": 1,
+            "viewbox": "-5.5,41.3,10.0,51.1"  # France bounding box
         }
         
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        
         if response.status_code == 200:
             results = response.json()
             formatted_results = []
             
             for result in results:
-                formatted_results.append({
-                    "display_name": result.get("display_name", ""),
-                    "lat": float(result.get("lat", 0)),
-                    "lon": float(result.get("lon", 0)),
-                    "type": result.get("type", ""),
-                    "importance": result.get("importance", 0)
-                })
+                # Additional filtering for French locations
+                display_name = result.get("display_name", "")
+                if "France" in display_name or "France" in result.get("address", {}).get("country", ""):
+                    formatted_results.append({
+                        "display_name": display_name,
+                        "lat": float(result.get("lat", 0)),
+                        "lon": float(result.get("lon", 0)),
+                        "type": result.get("type", ""),
+                        "importance": result.get("importance", 0),
+                        "address": result.get("address", {})
+                    })
+            
+            # If no results, try a broader search
+            if not formatted_results:
+                params["q"] = f"{location.query} France"
+                params.pop("bounded", None)
+                params.pop("viewbox", None)
+                
+                response2 = requests.get(url, params=params, headers=headers, timeout=10)
+                if response2.status_code == 200:
+                    results2 = response2.json()
+                    for result in results2:
+                        display_name = result.get("display_name", "")
+                        if "France" in display_name:
+                            formatted_results.append({
+                                "display_name": display_name,
+                                "lat": float(result.get("lat", 0)),
+                                "lon": float(result.get("lon", 0)),
+                                "type": result.get("type", ""),
+                                "importance": result.get("importance", 0),
+                                "address": result.get("address", {})
+                            })
             
             return {"results": formatted_results}
         else:
+            print(f"Nominatim API error: {response.status_code} - {response.text}")
             return {"results": []}
             
+    except requests.exceptions.Timeout:
+        print("Nominatim API timeout")
+        return {"results": [], "error": "Timeout lors de la recherche"}
     except Exception as e:
+        print(f"Search error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la recherche: {str(e)}")
 
 @app.post("/api/geology-info")
