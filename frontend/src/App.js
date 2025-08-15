@@ -538,12 +538,24 @@ function App() {
               <Card>
                 <CardHeader>
                   <CardTitle>Données Géologiques</CardTitle>
+                  <div className="coordinates-info">
+                    <span className="text-sm text-gray-600">
+                      📍 Lat: {geologicalInfo.coordinates.lat.toFixed(4)}, 
+                      Lon: {geologicalInfo.coordinates.lon.toFixed(4)}
+                    </span>
+                    {geologicalInfo.query_info && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        🗺️ {geologicalInfo.query_info.region}
+                      </span>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="geology-info">
                     <div className="info-group">
                       <h4>Âge géologique</h4>
                       <p>{geologicalInfo.geological_info.age}</p>
+                      <span className="text-sm text-gray-600">Ère: {geologicalInfo.geological_info.era}</span>
                     </div>
                     
                     <div className="info-group">
@@ -552,7 +564,7 @@ function App() {
                     </div>
                     
                     <div className="info-group">
-                      <h4>Formation</h4>
+                      <h4>Formation géologique</h4>
                       <p>{geologicalInfo.geological_info.formation}</p>
                     </div>
                     
@@ -567,11 +579,25 @@ function App() {
                     </div>
                     
                     <div className="info-group">
-                      <h4>Évaluation des risques</h4>
-                      <p><strong>Sismique:</strong> {geologicalInfo.risk_assessment.seismic_risk}</p>
-                      <p><strong>Géotechnique:</strong> {geologicalInfo.risk_assessment.geotechnical_risk}</p>
-                      <p><strong>Hydrogéologique:</strong> {geologicalInfo.risk_assessment.hydrogeological_context}</p>
+                      <h4>Ressources minérales</h4>
+                      <p>{geologicalInfo.geological_info.mineral_resources}</p>
                     </div>
+                    
+                    <div className="info-group">
+                      <h4>Évaluation des risques</h4>
+                      <p><strong>🔴 Sismique:</strong> {geologicalInfo.risk_assessment.seismic_risk}</p>
+                      <p><strong>🏗️ Géotechnique:</strong> {geologicalInfo.risk_assessment.geotechnical_risk}</p>
+                      <p><strong>💧 Hydrogéologique:</strong> {geologicalInfo.risk_assessment.hydrogeological_context}</p>
+                    </div>
+                    
+                    {geologicalInfo.additional_info && (
+                      <div className="info-group">
+                        <h4>Informations complémentaires</h4>
+                        <p><strong>Référence:</strong> {geologicalInfo.additional_info.geological_map_sheet}</p>
+                        <p><strong>Dernière étude:</strong> {geologicalInfo.additional_info.last_geological_survey}</p>
+                        <p><strong>Fiabilité:</strong> {geologicalInfo.additional_info.confidence_level}</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
