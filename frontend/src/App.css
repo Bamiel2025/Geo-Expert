@@ -97,6 +97,19 @@
   margin: 0 !important;
   min-height: 20px;
   line-height: 1.4;
+  color: #2d3748;
+  font-family: inherit;
+}
+
+.search-input:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.search-input::placeholder {
+  color: #a0aec0;
+  opacity: 1;
 }
 
 .search-results {
