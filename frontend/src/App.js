@@ -18,8 +18,6 @@ import OSM from 'ol/source/OSM';
 import ImageWMS from 'ol/source/ImageWMS';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { defaults as defaultControls } from 'ol/control';
-import { click } from 'ol/events/condition';
-import Select from 'ol/interaction/Select';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
