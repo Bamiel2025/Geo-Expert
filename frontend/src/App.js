@@ -304,12 +304,15 @@ function App() {
           <form onSubmit={handleSearch} className="search-container">
             <div className="search-input-wrapper">
               <Search className="search-icon" />
-              <Input
+              <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher une localité française..."
                 className="search-input"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
               />
               <Button type="submit" size="sm">
                 Rechercher
