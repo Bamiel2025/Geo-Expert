@@ -41,6 +41,10 @@ jobs:
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       run: |
+        # Set git user config
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
         # Clean up any existing gh-pages branch
         git branch -D gh-pages || true
         git push origin --delete gh-pages || true
