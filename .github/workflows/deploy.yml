@@ -32,11 +32,12 @@ jobs:
 
     - name: Build
       working-directory: ./frontend
-      run: yarn build
+      run: |
+        echo "REACT_APP_GEMINI_API_KEY=${{ secrets.REACT_APP_GEMINI_API_KEY }}" >> .env
+        yarn build
       env:
         PUBLIC_URL: https://bamiel2025.github.io/Geo-Expert
         REACT_APP_BACKEND_URL: ${{ secrets.REACT_APP_BACKEND_URL || 'http://localhost:8001' }}
-        REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
 
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
