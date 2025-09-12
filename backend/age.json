@@ -1,0 +1,225 @@
+{
+  "Mz": {
+    "nom_periode": "Flandrien (Holocène)",
+    "age_debut_ma": 0.0117,
+    "age_fin_ma": 0
+  },
+  "Lz": {
+    "nom_periode": "Post-glaciaire (Holocène)",
+    "age_debut_ma": 0.0117,
+    "age_fin_ma": 0
+  },
+  "Uz": {
+    "nom_periode": "Récent (Holocène)",
+    "age_debut_ma": 0.0117,
+    "age_fin_ma": 0
+  },
+  "Ez": {
+    "nom_periode": "Récent (Holocène)",
+    "age_debut_ma": 0.0117,
+    "age_fin_ma": 0
+  },
+  "Fz": {
+    "nom_periode": "Récent (Holocène)",
+    "age_debut_ma": 0.0117,
+    "age_fin_ma": 0
+  },
+  "Pyz": {
+    "nom_periode": "Würm récent (Pléistocène supérieur)",
+    "age_debut_ma": 0.126,
+    "age_fin_ma": 0.0117
+  },
+  "Fy": {
+    "nom_periode": "Würm ancien (Pléistocène supérieur)",
+    "age_debut_ma": 0.126,
+    "age_fin_ma": 0.0117
+  },
+  "Py": {
+    "nom_periode": "Würm ancien (Pléistocène supérieur)",
+    "age_debut_ma": 0.126,
+    "age_fin_ma": 0.0117
+  },
+  "OEy": {
+    "nom_periode": "Würmien (Pléistocène supérieur)",
+    "age_debut_ma": 0.126,
+    "age_fin_ma": 0.0117
+  },
+  "Ey": {
+    "nom_periode": "Würmien (Pléistocène supérieur)",
+    "age_debut_ma": 0.126,
+    "age_fin_ma": 0.0117
+  },
+  "Uv, Bv": {
+    "nom_periode": "Quaternaire ancien (Calabrien, Pléistocène inférieur)",
+    "age_debut_ma": 1.8,
+    "age_fin_ma": 0.781
+  },
+  "Fx": {
+    "nom_periode": "Riss (Pléistocène moyen)",
+    "age_debut_ma": 0.781,
+    "age_fin_ma": 0.126
+  },
+  "Fw": {
+    "nom_periode": "Mindel (Pléistocène moyen)",
+    "age_debut_ma": 0.781,
+    "age_fin_ma": 0.126
+  },
+  "tgR": {
+    "nom_periode": "Formation remaniée post-Trias",
+    "description": "L'âge n'est pas applicable car c'est un mélange de roches d'époques variées."
+  },
+  "g2": {
+    "nom_periode": "Stampien (Rupélien, Oligocène)",
+    "age_debut_ma": 33.9,
+    "age_fin_ma": 28.1
+  },
+  "g1": {
+    "nom_periode": "Sannoisien (base de l'Oligocène)",
+    "age_debut_ma": 33.9,
+    "age_fin_ma": 32.0
+  },
+  "g1b": {
+    "nom_periode": "Sannoisien (base de l'Oligocène)",
+    "age_debut_ma": 33.9,
+    "age_fin_ma": 32.0
+  },
+  "Br": {
+    "nom_periode": "Oligocène inférieur (partiel)",
+    "age_debut_ma": 33.9,
+    "age_fin_ma": 28.1
+  },
+  "c7": {
+    "nom_periode": "Bégudien (faciès du Maestrichtien, Crétacé supérieur)",
+    "age_debut_ma": 72.1,
+    "age_fin_ma": 66.0
+  },
+  "c6": {
+    "nom_periode": "Valdo-Fuvélien (faciès du Campanien, Crétacé supérieur)",
+    "age_debut_ma": 83.6,
+    "age_fin_ma": 72.1
+  },
+  "c5": {
+    "nom_periode": "Santonien (Crétacé supérieur)",
+    "age_debut_ma": 86.3,
+    "age_fin_ma": 83.6
+  },
+  "c5R": {
+    "nom_periode": "Santonien (Crétacé supérieur)",
+    "age_debut_ma": 86.3,
+    "age_fin_ma": 83.6
+  },
+  "c4-5": {
+    "nom_periode": "Coniacien-Santonien (Crétacé supérieur)",
+    "age_debut_ma": 89.8,
+    "age_fin_ma": 83.6
+  },
+  "c4": {
+    "nom_periode": "Coniacien (Crétacé supérieur)",
+    "age_debut_ma": 89.8,
+    "age_fin_ma": 86.3
+  },
+  "c3": {
+    "nom_periode": "Turonien (Crétacé supérieur)",
+    "age_debut_ma": 93.9,
+    "age_fin_ma": 89.8
+  },
+  "c2": {
+    "nom_periode": "Cénomanien (Crétacé supérieur)",
+    "age_debut_ma": 100.5,
+    "age_fin_ma": 93.9
+  },
+  "B": {
+    "nom_periode": "Bauxite (formée durant la lacune Aptien-Turonien)",
+    "description": "Le minerai s'est formé durant l'émersion entre l'Aptien/Albien et le Turonien, approximativement entre 113 et 94 Ma."
+  },
+  "c1": {
+    "nom_periode": "Albien (Crétacé inférieur)",
+    "age_debut_ma": 113.0,
+    "age_fin_ma": 100.5
+  },
+  "n6": {
+    "nom_periode": "Gargasien (faciès de l'Aptien, Crétacé inférieur)",
+    "age_debut_ma": 121.4,
+    "age_fin_ma": 113.0
+  },
+  "n5": {
+    "nom_periode": "Bédoulien (faciès de l'Aptien, Crétacé inférieur)",
+    "age_debut_ma": 121.4,
+    "age_fin_ma": 113.0
+  },
+  "n4_UR": {
+    "nom_periode": "Barrémien (Crétacé inférieur)",
+    "age_debut_ma": 125.77,
+    "age_fin_ma": 121.4
+  },
+  "n3": {
+    "nom_periode": "Hauterivien (Crétacé inférieur)",
+    "age_debut_ma": 132.6,
+    "age_fin_ma": 125.77
+  },
+  "n2": {
+    "nom_periode": "Valanginien (Crétacé inférieur)",
+    "age_debut_ma": 139.8,
+    "age_fin_ma": 132.9
+  },
+  "j9b": {
+    "nom_periode": "Portlandien (Tithonien, Jurassique supérieur)",
+    "age_debut_ma": 149.2,
+    "age_fin_ma": 145.0
+  },
+  "j9a": {
+    "nom_periode": "Portlandien (Tithonien, Jurassique supérieur)",
+    "age_debut_ma": 149.2,
+    "age_fin_ma": 145.0
+  },
+  "j7-8": {
+    "nom_periode": "Kimméridgien (Jurassique supérieur)",
+    "age_debut_ma": 154.8,
+    "age_fin_ma": 149.2
+  },
+  "j5": {
+    "nom_periode": "Argovien (faciès de l'Oxfordien, Jurassique supérieur)",
+    "age_debut_ma": 161.5,
+    "age_fin_ma": 154.8
+  },
+  "j3": {
+    "nom_periode": "Callovien (Jurassique moyen)",
+    "age_debut_ma": 165.3,
+    "age_fin_ma": 161.5
+  },
+  "j1-2": {
+    "nom_periode": "Bajocien-Bathonien (Jurassique moyen)",
+    "age_debut_ma": 170.3,
+    "age_fin_ma": 166.1
+  },
+  "l6": {
+    "nom_periode": "Aalénien (Jurassique moyen)",
+    "age_debut_ma": 174.1,
+    "age_fin_ma": 170.3
+  },
+  "l4-5": {
+    "nom_periode": "Domérien-Toarcien (Jurassique inférieur)",
+    "age_debut_ma": 190.8,
+    "age_fin_ma": 174.1
+  },
+  "l2": {
+    "nom_periode": "Hettangien (Jurassique inférieur)",
+    "age_debut_ma": 201.4,
+    "age_fin_ma": 199.5
+  },
+  "l1": {
+    "nom_periode": "Rhétien (Trias supérieur)",
+    "age_debut_ma": 208.5,
+    "age_fin_ma": 201.4
+  },
+  "t9": {
+    "nom_periode": "Keuper (faciès du Trias supérieur)",
+    "age_debut_ma": 237.0,
+    "age_fin_ma": 201.4
+  },
+  "t6": {
+    "nom_periode": "Muschelkalk (faciès du Trias moyen)",
+    "age_debut_ma": 247.2,
+    "age_fin_ma": 237.0
+  }
+}

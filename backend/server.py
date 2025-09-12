@@ -1,18 +1,70 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import os
-import uuid
 import requests
 from dotenv import load_dotenv
-from motor.motor_asyncio import AsyncIOMotorClient
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-import asyncio
 import json
+from shapely.geometry import shape, Point
 
 load_dotenv()
+
+# Gemini API key from environment
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
+# --- Data Loading ---
+CARTEAUBAGNE_FEATURES = []
+NOTICE_DATA = {}
+AGE_DATA = {}
+
+def load_carteaubagne_data():
+    global CARTEAUBAGNE_FEATURES
+    try:
+        with open("cartenettoyee2.geojson", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            CARTEAUBAGNE_FEATURES = data["features"]
+        print(f"Successfully loaded {len(CARTEAUBAGNE_FEATURES)} features from cartenettoyee2.geojson.")
+    except Exception as e:
+        print(f"CRITICAL ERROR loading cartenettoyee2.geojson: {e}")
+
+def load_notice_data():
+    global NOTICE_DATA
+    try:
+        with open("noticeexplicative.groovy", "r", encoding="utf-8") as f:
+            NOTICE_DATA = json.load(f)
+        print(f"Successfully loaded {len(NOTICE_DATA)} entries from noticeexplicative.groovy.")
+    except Exception as e:
+        print(f"ERROR loading noticeexplicative.groovy: {e}")
+
+def load_age_data():
+    global AGE_DATA
+    try:
+        with open("age.json", "r", encoding="utf-8") as f:
+            AGE_DATA = json.load(f)
+        print(f"Successfully loaded {len(AGE_DATA)} entries from age.json.")
+    except Exception as e:
+        print(f"ERROR loading age.json: {e}")
+
+def find_feature_by_location(lon, lat):
+    point = Point(lon, lat)
+    matching_features = []
+    for feature in CARTEAUBAGNE_FEATURES:
+        geom = feature.get("geometry")
+        if not geom:
+            continue
+        shapely_geom = shape(geom)
+        if shapely_geom.contains(point):
+            matching_features.append((shapely_geom.area, feature["properties"]))
+    if not matching_features:
+        return None
+    matching_features.sort(key=lambda x: x[0])
+    return matching_features[0][1]
+
+# Load data at startup
+load_carteaubagne_data()
+load_notice_data()
+load_age_data()
 
 app = FastAPI()
 
@@ -25,461 +77,114 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB setup
-MONGO_URL = os.environ.get('MONGO_URL')
-client = AsyncIOMotorClient(MONGO_URL)
-db = client.geology_app
-
-# Security
-security = HTTPBearer()
-
 # Models
 class LocationSearch(BaseModel):
     query: str
 
-class ChatMessage(BaseModel):
-    message: str
-    session_id: str
-    openai_key: Optional[str] = None
-    gemini_key: Optional[str] = None
 
-class APIKeysConfig(BaseModel):
-    openai_key: Optional[str] = None
-    gemini_key: Optional[str] = None
-    session_id: str
-
-class GeologyQuery(BaseModel):
+class GeologyFeatureInfoQuery(BaseModel):
+    bbox: str
+    width: int
+    height: int
+    x: int
+    y: int
     lat: float
     lon: float
-    zoom: int
 
 # Routes
-@app.get("/api/health")
-async def health():
-    return {"status": "healthy"}
-
 @app.post("/api/search-location")
 async def search_location(location: LocationSearch):
-    """Search for French locations using Nominatim API"""
     try:
-        # Search specifically in France
         url = "https://nominatim.openstreetmap.org/search"
-        
-        # Add User-Agent header as required by Nominatim
-        headers = {
-            "User-Agent": "GeoExplorer-France/1.0 (geological.application@example.com)"
-        }
-        
+        headers = {"User-Agent": "GeoExplorer-France/1.0 (geological.application@example.com)"}
         params = {
-            "q": location.query,
-            "format": "json",
-            "limit": 10,
-            "countrycodes": "fr",
-            "addressdetails": 1,
-            "bounded": 1,
-            "viewbox": "-5.5,41.3,10.0,51.1"  # France bounding box
+            "q": location.query, "format": "json", "limit": 10, "countrycodes": "fr",
+            "addressdetails": 1, "bounded": 1, "viewbox": "-5.5,41.3,10.0,51.1"
         }
-        
         response = requests.get(url, params=params, headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            results = response.json()
-            formatted_results = []
-            
-            for result in results:
-                # Additional filtering for French locations
-                display_name = result.get("display_name", "")
-                if "France" in display_name or "France" in result.get("address", {}).get("country", ""):
-                    formatted_results.append({
-                        "display_name": display_name,
-                        "lat": float(result.get("lat", 0)),
-                        "lon": float(result.get("lon", 0)),
-                        "type": result.get("type", ""),
-                        "importance": result.get("importance", 0),
-                        "address": result.get("address", {})
-                    })
-            
-            # If no results, try a broader search
-            if not formatted_results:
-                params["q"] = f"{location.query} France"
-                params.pop("bounded", None)
-                params.pop("viewbox", None)
-                
-                response2 = requests.get(url, params=params, headers=headers, timeout=10)
-                if response2.status_code == 200:
-                    results2 = response2.json()
-                    for result in results2:
-                        display_name = result.get("display_name", "")
-                        if "France" in display_name:
-                            formatted_results.append({
-                                "display_name": display_name,
-                                "lat": float(result.get("lat", 0)),
-                                "lon": float(result.get("lon", 0)),
-                                "type": result.get("type", ""),
-                                "importance": result.get("importance", 0),
-                                "address": result.get("address", {})
-                            })
-            
-            return {"results": formatted_results}
-        else:
-            print(f"Nominatim API error: {response.status_code} - {response.text}")
-            return {"results": []}
-            
-    except requests.exceptions.Timeout:
-        print("Nominatim API timeout")
-        return {"results": [], "error": "Timeout lors de la recherche"}
+        response.raise_for_status()
+        results = response.json()
+        formatted_results = [res for res in results if "France" in res.get("display_name", "")]
+        return {"results": formatted_results}
     except Exception as e:
-        print(f"Search error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la recherche: {str(e)}")
 
 @app.post("/api/geology-info")
-async def get_geology_info(query: GeologyQuery):
-    """Get geological information for a specific point"""
-    try:
-        # Données géologiques dynamiques basées sur les coordonnées
-        lat, lon = query.lat, query.lon
-        
-        # Système de données géologiques réalistes selon les régions françaises
-        geological_regions = get_geological_data_by_coordinates(lat, lon)
-        
-        geology_data = {
-            "coordinates": {"lat": lat, "lon": lon},
-            "query_info": {
-                "timestamp": "2025-01-16T10:30:00Z",
-                "zoom_level": query.zoom,
-                "region": geological_regions["region"]
-            },
-            "geological_info": geological_regions["geological_info"],
-            "risk_assessment": geological_regions["risk_assessment"],
-            "additional_info": geological_regions["additional_info"]
-        }
-        
-        return geology_data
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur géologique: {str(e)}")
+async def get_geology_info(query: GeologyFeatureInfoQuery):
+    detailed_info = find_feature_by_location(query.lon, query.lat)
+    if not detailed_info:
+        raise HTTPException(status_code=404, detail="Les coordonnées sont en dehors de la zone de la carte d'Aubagne.")
 
-def get_geological_data_by_coordinates(lat: float, lon: float):
-    """Generate realistic geological data based on coordinates in France"""
-    import random
-    import math
-    
-    # Régions géologiques françaises avec données réalistes
-    geological_formations = {
-        # Bassin Parisien (Nord de la France)
-        "bassin_parisien": {
-            "ages": ["Crétacé supérieur", "Jurassique moyen", "Jurassique supérieur (Oxfordien)", "Éocène"],
-            "lithologies": [
-                "Craie blanche à silex",
-                "Calcaires oolithiques",
-                "Marnes à huîtres",
-                "Sables de Fontainebleau"
-            ],
-            "formations": [
-                "Formation de la Craie de Champagne",
-                "Calcaires de Beauce",
-                "Marnes bleues d'Hauterive",
-                "Sables et grès de Fontainebleau"
-            ],
-            "era": "Mésozoïque/Cénozoïque",
-            "tectonic": "Bassin sédimentaire stable",
-            "risks": {
-                "seismic": "Très faible",
-                "geotechnical": "Faible à modéré",
-                "hydrogeological": "Aquifère multicouche"
-            }
-        },
-        
-        # Massif Central
-        "massif_central": {
-            "ages": ["Paléozoïque", "Précambrien", "Carbonifère", "Permien"],
-            "lithologies": [
-                "Granites à biotite",
-                "Schistes métamorphiques",
-                "Gneiss à grenat",
-                "Basaltes volcaniques"
-            ],
-            "formations": [
-                "Granite de la Margeride",
-                "Schistes de Lodève",
-                "Complexe gneissique du Rouergue",
-                "Coulées basaltiques du Cantal"
-            ],
-            "era": "Paléozoïque",
-            "tectonic": "Massif hercynien",
-            "risks": {
-                "seismic": "Faible à modéré",
-                "geotechnical": "Variable selon altération",
-                "hydrogeological": "Aquifère de socle fissuré"
-            }
-        },
-        
-        # Alpes
-        "alpes": {
-            "ages": ["Jurassique", "Crétacé", "Trias", "Paléogène"],
-            "lithologies": [
-                "Calcaires urgoniens",
-                "Flysch à helminthoïdes",
-                "Dolomies triasiques",
-                "Schistes lustrés"
-            ],
-            "formations": [
-                "Calcaires urgoniens du Vercors",
-                "Flysch des Aiguilles d'Arves",
-                "Dolomies du Trias",
-                "Schistes lustrés du Queyras"
-            ],
-            "era": "Mésozoïque/Cénozoïque",
-            "tectonic": "Chaîne alpine - nappes de charriage",
-            "risks": {
-                "seismic": "Modéré à fort",
-                "geotechnical": "Élevé - instabilités",
-                "hydrogeological": "Aquifère karstique"
-            }
-        },
-        
-        # Bretagne - Massif Armoricain
-        "bretagne": {
-            "ages": ["Précambrien", "Paléozoïque", "Ordovicien", "Briovérien"],
-            "lithologies": [
-                "Granites porphyroïdes",
-                "Schistes de Redon",
-                "Quartzites armoricains",
-                "Migmatites"
-            ],
-            "formations": [
-                "Granite de Ploumanac'h",
-                "Schistes et grès du Briovérien",
-                "Quartzites de Plougastel",
-                "Migmatites de Saint-Malo"
-            ],
-            "era": "Précambrien/Paléozoïque",
-            "tectonic": "Massif hercynien - Chaîne cadomienne",
-            "risks": {
-                "seismic": "Très faible",
-                "geotechnical": "Faible - roche dure",
-                "hydrogeological": "Aquifère de socle altéré"
-            }
-        },
-        
-        # Aquitaine
-        "aquitaine": {
-            "ages": ["Miocène", "Oligocène", "Éocène", "Crétacé supérieur"],
-            "lithologies": [
-                "Sables des Landes",
-                "Calcaires à astéries",
-                "Molasses de l'Armagnac",
-                "Marnes et calcaires lacustres"
-            ],
-            "formations": [
-                "Formation des Sables fauves",
-                "Calcaires de l'Entre-deux-Mers",
-                "Molasses de l'Agenais",
-                "Calcaires de Castillon"
-            ],
-            "era": "Cénozoïque",
-            "tectonic": "Bassin molassique pyrénéen",
-            "risks": {
-                "seismic": "Faible à modéré",
-                "geotechnical": "Variable - sols mous",
-                "hydrogeological": "Aquifère plio-quaternaire"
-            }
-        }
-    }
-    
-    # Déterminer la région géologique basée sur les coordonnées
-    region_key = determine_geological_region(lat, lon)
-    region_data = geological_formations[region_key]
-    
-    # Génération aléatoire mais cohérente basée sur les coordonnées
-    random.seed(int((lat * 1000 + lon * 1000) % 1000))
-    
-    selected_age = random.choice(region_data["ages"])
-    selected_lithology = random.choice(region_data["lithologies"])
-    selected_formation = random.choice(region_data["formations"])
-    
+    notation = detailed_info.get('NOTATION')
+    notice_info = NOTICE_DATA.get(notation, {})
+    age_info = AGE_DATA.get(notation, {})
+    age_display = notice_info.get('age_formation', 'Non disponible')
+    if age_info:
+        age_display += f" ({age_info.get('nom_periode', '')})"
+
     return {
-        "region": region_key.replace("_", " ").title(),
+        "coordinates": {"lat": query.lat, "lon": query.lon},
+        "query_info": {"region": "Aubagne (carte locale)"},
         "geological_info": {
-            "age": selected_age,
-            "lithology": selected_lithology,
-            "formation": selected_formation,
-            "era": region_data["era"],
-            "period": selected_age.split()[0] if " " in selected_age else selected_age,
-            "description": generate_geological_description(selected_lithology, selected_age),
-            "tectonic_context": region_data["tectonic"],
-            "mineral_resources": generate_mineral_resources(selected_lithology)
-        },
-        "risk_assessment": {
-            "seismic_risk": region_data["risks"]["seismic"],
-            "geotechnical_risk": region_data["risks"]["geotechnical"],
-            "hydrogeological_context": region_data["risks"]["hydrogeological"]
-        },
-        "additional_info": {
-            "geological_map_sheet": f"Feuille BRGM {random.randint(1, 1000):03d}",
-            "last_geological_survey": f"{random.randint(1990, 2023)}",
-            "confidence_level": random.choice(["Élevé", "Moyen", "Faible"])
+            "age": age_display,
+            "lithology": notice_info.get('lithologie', detailed_info.get('DESCR', 'Non disponible')),
+            "fossiles": notice_info.get('fossiles', 'Non disponible'),
+            "description": f"Notation: {detailed_info.get('NOTATION', 'N/A')}",
+            "description_generale": notice_info.get('description_generale', 'Non disponible')
         }
     }
 
-def determine_geological_region(lat: float, lon: float):
-    """Determine geological region based on coordinates"""
-    # Bassin Parisien (Nord de la France)
-    if lat > 48.5 and 1.5 < lon < 4.5:
-        return "bassin_parisien"
-    
-    # Alpes (Sud-Est)
-    elif lat > 44.0 and lon > 5.5:
-        return "alpes"
-    
-    # Massif Central (Centre)
-    elif 44.0 < lat < 46.5 and 2.0 < lon < 4.5:
-        return "massif_central"
-    
-    # Bretagne (Ouest)
-    elif lon < 2.0 and lat > 47.0:
-        return "bretagne"
-    
-    # Aquitaine (Sud-Ouest)
-    elif lat < 45.5 and lon < 2.0:
-        return "aquitaine"
-    
-    # Par défaut - Bassin Parisien
-    else:
-        return "bassin_parisien"
-
-def generate_geological_description(lithology: str, age: str):
-    """Generate realistic geological descriptions"""
-    descriptions = {
-        "Calcaires": f"Roches sédimentaires carbonatées du {age}, formées en environnement marin peu profond",
-        "Granites": f"Roches magmatiques plutoniques du {age}, cristallisation en profondeur",
-        "Schistes": f"Roches métamorphiques du {age}, déformation et recristallisation",
-        "Sables": f"Dépôts détritiques du {age}, environnement continental à marin",
-        "Marnes": f"Alternance argilo-calcaire du {age}, sédimentation marine calme",
-        "Craie": f"Calcaire fin du {age}, sédimentation pélagique riche en coccolithes",
-        "Flysch": f"Série turbiditique du {age}, dépôts en bassin profond",
-        "Dolomies": f"Calcaires dolomitisés du {age}, diagenèse précoce",
-        "Basaltes": f"Roches volcaniques du {age}, épanchements en surface"
-    }
-    
-    for key, desc in descriptions.items():
-        if key.lower() in lithology.lower():
-            return desc
-    
-    return f"Formation géologique du {age}, caractéristiques pétrographiques complexes"
-
-def generate_mineral_resources(lithology: str):
-    """Generate mineral resources based on lithology"""
-    resources = {
-        "Calcaires": "Granulats, cimenterie, chaux",
-        "Granites": "Granulats, pierres ornementales, feldspath",
-        "Schistes": "Ardoises, granulats, argiles",
-        "Sables": "Sablières, verrerie, construction",
-        "Marnes": "Cimenterie, céramique",
-        "Craie": "Cimenterie, amendement agricole",
-        "Dolomies": "Réfractaires, métallurgie",
-        "Basaltes": "Granulats, laine de roche"
-    }
-    
-    for key, resource in resources.items():
-        if key.lower() in lithology.lower():
-            return resource
-    
-    return "Ressources minérales diverses"
-
-@app.post("/api/save-api-keys")
-async def save_api_keys(config: APIKeysConfig):
-    """Save API keys configuration for a session"""
-    try:
-        # Store in database for the session
-        await db.api_configs.update_one(
-            {"session_id": config.session_id},
-            {
-                "$set": {
-                    "session_id": config.session_id,
-                    "openai_key": config.openai_key,
-                    "gemini_key": config.gemini_key,
-                    "updated_at": "2025-01-16"
-                }
-            },
-            upsert=True
-        )
-        
-        return {"status": "success", "message": "Clés API sauvegardées"}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur sauvegarde: {str(e)}")
-
-@app.get("/api/get-api-keys/{session_id}")
-async def get_api_keys(session_id: str):
-    """Get API keys for a session"""
-    try:
-        config = await db.api_configs.find_one({"session_id": session_id})
-        
-        if config:
-            return {
-                "openai_key": config.get("openai_key"),
-                "gemini_key": config.get("gemini_key"),
-                "configured": bool(config.get("openai_key")) and bool(config.get("gemini_key"))
-            }
-        else:
-            return {"configured": False}
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur récupération: {str(e)}")
 
 @app.post("/api/chat-geology")
-async def chat_geology(message: ChatMessage):
-    """Chat with AI about geology"""
+async def chat_geology(request: Request):
+    print("--- CHAT GEOLOGY ENDPOINT HIT ---")
     try:
-        # Get API keys for this session
-        config = await db.api_configs.find_one({"session_id": message.session_id})
-        
-        if not config or not config.get("openai_key"):
-            raise HTTPException(status_code=400, detail="Clés API non configurées")
-        
-        # Use OpenAI for geological explanations
-        openai_key = config.get("openai_key")
-        
-        # Initialize chat with geological expertise
-        system_message = """Vous êtes un expert géologue français spécialisé dans l'analyse des formations géologiques de France. 
-        Vous maîtrisez parfaitement :
-        - L'histoire géologique de la France
-        - Les formations du BRGM au 1/50 000
-        - La stratigraphie française
-        - L'analyse des risques géotechniques
-        - L'interprétation des cartes géologiques
-        
-        Répondez toujours en français avec une expertise technique précise, en expliquant l'évolution temporelle des formations et en proposant des comparaisons entre zones géologiques quand pertinent."""
-        
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=message.session_id,
-            system_message=system_message
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=message.message)
-        response = await chat.send_message(user_message)
-        
-        # Store chat history
-        await db.chat_history.insert_one({
-            "session_id": message.session_id,
-            "user_message": message.message,
-            "ai_response": response,
-            "timestamp": "2025-01-16",
-            "model_used": "gpt-4o"
-        })
-        
-        return {"response": response, "model": "OpenAI GPT-4o"}
-        
+        if not GEMINI_API_KEY:
+            print("--- ERROR: GEMINI_API_KEY not set in environment ---")
+            raise HTTPException(status_code=500, detail="Clé API Gemini non configurée dans l'environnement.")
+
+        body = await request.json()
+        contents = body.get('contents')
+        model = body.get('model', 'gemini-1.5-flash')  # default to old model if not provided
+        print(f"--- MODEL REQUESTED: {model} ---")
+        print(f"--- RECEIVED CONTENTS: {contents} ---")
+        if not contents:
+            print("--- ERROR: Invalid request content ---")
+            raise HTTPException(status_code=400, detail="Contenu de la requête invalide.")
+
+        print("--- CONFIGURING GOOGLE GENERATIVE AI ---")
+        import google.generativeai as genai
+        genai.configure(api_key=GEMINI_API_KEY)
+        print(f"--- CREATING MODEL: {model} ---")
+        gemini_model = genai.GenerativeModel(model)
+        print("--- GENERATING CONTENT ---")
+        response = gemini_model.generate_content(contents)
+        print("--- CONTENT GENERATED SUCCESSFULLY ---")
+
+        formatted_response = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {"text": response.text}
+                        ]
+                    }
+                }
+            ]
+        }
+        print(f"--- FORMATTED RESPONSE LENGTH: {len(response.text)} characters ---")
+        print("--- SENDING RESPONSE ---")
+        return formatted_response
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur chat: {str(e)}")
+        print(f"--- ERROR IN CHAT_GEOLOGY: {str(e)} ---")
+        import traceback
+        print("--- FULL TRACEBACK ---")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Désolé, une erreur est survenue: {str(e)}")
 
 @app.get("/api/wms-layers")
 async def get_wms_layers():
-    """Get available BRGM WMS layers"""
     try:
-        # BRGM public WMS services - URLs réelles
         layers = {
             "geological_map_50k": {
                 "name": "Carte géologique France 1/50 000",
@@ -503,9 +208,7 @@ async def get_wms_layers():
                 "transparent": True
             }
         }
-        
         return {"layers": layers}
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur WMS: {str(e)}")
 
