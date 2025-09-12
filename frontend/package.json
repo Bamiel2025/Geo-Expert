@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://bamiel2025.github.io/Geo-Expert",
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
     "@mlc-ai/web-llm": "^0.2.79",
