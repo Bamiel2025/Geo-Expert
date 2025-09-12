@@ -38,17 +38,29 @@ jobs:
         REACT_APP_BACKEND_URL: ${{ secrets.REACT_APP_BACKEND_URL || 'http://localhost:8001' }}
         REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
 
-    - name: Deploy to docs folder
+    - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       run: |
-        mkdir -p docs
-        cp -r ./frontend/build/* docs/
-        echo "Geo-Expert" > docs/README.md
-        touch docs/.nojekyll
+        # Clean up any existing gh-pages branch
+        git branch -D gh-pages || true
+        git push origin --delete gh-pages || true
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
+        # Create and switch to gh-pages branch
+        git checkout --orphan gh-pages
+        git rm -rf .
+
+        # Copy build files
+        cp -r ./frontend/build/* .
+
+        # Create .nojekyll to prevent Jekyll processing
+        touch .nojekyll
+
+        # Add and commit
+        git add .
+        git commit -m "Deploy to GitHub Pages"
+
+        # Force push to gh-pages branch
+        git push origin gh-pages --force
+
+        # Go back to main branch
+        git checkout main
