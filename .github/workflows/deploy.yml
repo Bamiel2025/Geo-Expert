@@ -44,6 +44,7 @@ jobs:
         mkdir -p docs
         cp -r ./frontend/build/* docs/
         echo "Geo-Expert" > docs/README.md
+        touch docs/.nojekyll
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
