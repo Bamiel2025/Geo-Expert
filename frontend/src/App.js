@@ -186,7 +186,7 @@ function App() {
         provider: new GeminiProvider({
           mode: 'direct',
           model: 'gemini-2.5-flash',
-          apiKey: process.env.REACT_APP_GEMINI_API_KEY,
+          apiKey: process.env.REACT_APP_GEMINI_API_KEY || 'your_gemini_api_key_here',
           systemMessage: 'You are a helpful geology assistant. You can access web search to answer questions. All your responses must be in French.'
         }),
       },
