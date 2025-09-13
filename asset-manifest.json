@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "https://bamiel2025.github.io/Geo-Expert/static/css/main.170a6afa.css",
+    "main.js": "https://bamiel2025.github.io/Geo-Expert/static/js/main.71ea3966.js",
+    "static/js/855.796acf07.chunk.js": "https://bamiel2025.github.io/Geo-Expert/static/js/855.796acf07.chunk.js",
+    "index.html": "https://bamiel2025.github.io/Geo-Expert/index.html",
+    "main.170a6afa.css.map": "https://bamiel2025.github.io/Geo-Expert/static/css/main.170a6afa.css.map",
+    "main.71ea3966.js.map": "https://bamiel2025.github.io/Geo-Expert/static/js/main.71ea3966.js.map",
+    "855.796acf07.chunk.js.map": "https://bamiel2025.github.io/Geo-Expert/static/js/855.796acf07.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.170a6afa.css",
+    "static/js/main.71ea3966.js"
+  ]
+}
