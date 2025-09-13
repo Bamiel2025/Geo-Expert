@@ -33,7 +33,7 @@ jobs:
     - name: Build
       working-directory: ./frontend
       run: |
-        echo "REACT_APP_GEMINI_API_KEY=${{ secrets.REACT_APP_GEMINI_API_KEY }}" >> .env
+        echo "${{ secrets.REACT_APP_GEMINI_API_KEY }}" > .env
         yarn build
       env:
         PUBLIC_URL: https://bamiel2025.github.io/Geo-Expert
