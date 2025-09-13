@@ -192,21 +192,21 @@ async def get_wms_layers():
         layers = {
             "geological_map_50k": {
                 "name": "Carte géologique France 1/50 000",
-                "url": "http://geoservices.brgm.fr/geologie",
+                "url": "https://geoservices.brgm.fr/geologie",
                 "layers": "SCAN_D_GEOL50",
                 "format": "image/png",
                 "transparent": True
             },
             "geological_map_250k": {
                 "name": "Carte géologique France 1/250 000",
-                "url": "http://geoservices.brgm.fr/geologie",
+                "url": "https://geoservices.brgm.fr/geologie",
                 "layers": "SCAN_F_GEOL250",
                 "format": "image/png",
                 "transparent": True
             },
             "geological_map_1m": {
                 "name": "Carte géologique France 1/1 000 000",
-                "url": "http://geoservices.brgm.fr/geologie",
+                "url": "https://geoservices.brgm.fr/geologie",
                 "layers": "SCAN_F_GEOL1M",
                 "format": "image/png",
                 "transparent": True
