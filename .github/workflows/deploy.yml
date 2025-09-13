@@ -37,7 +37,7 @@ jobs:
         yarn build
       env:
         PUBLIC_URL: https://bamiel2025.github.io/Geo-Expert
-        REACT_APP_BACKEND_URL: ${{ secrets.REACT_APP_BACKEND_URL || https://geo-expert.onrender.com }}
+        REACT_APP_BACKEND_URL: ${{ secrets.REACT_APP_BACKEND_URL || 'https://geo-expert.onrender.com' }}
 
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
